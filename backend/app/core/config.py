@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     mistral_api_key: str = ""
     mistral_model: str = "mistral-small-latest"
     env: str = "dev"
+    cors_origins: list[str] = ["http://localhost:3000"]
+    cache_ttl_s: int = 300
+    rate_limit: str = "60/minute"
 
 
 @lru_cache
