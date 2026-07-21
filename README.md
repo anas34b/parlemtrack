@@ -43,7 +43,7 @@ Les commandes ci-dessous supposent le venv activé (`source .venv/bin/activate`)
 # députés, groupes et scores Datan ; met à jour le cache RSS des actualités
 python -m pipeline.run
 
-# API (Phase 2)
+# API (Phase 2) : documentation interactive sur http://localhost:8000/docs
 uvicorn backend.app.main:app --reload
 ```
 
@@ -55,13 +55,14 @@ Toujours avec le venv activé :
 ruff check .                          # lint Python
 pytest --cov                          # tous les tests + couverture
 pytest tests/pipeline --cov=pipeline  # tests du pipeline seul (base PostgreSQL de test requise)
+pytest tests/backend --cov=backend    # tests de l'API seule (base PostgreSQL de test requise)
 docker compose down                   # arrêter les services locaux
 ```
 
-Les tests du pipeline (`tests/pipeline/`) créent automatiquement une base
-PostgreSQL de test dédiée (`<nom_base>_test`) au premier lancement, distincte
-de la base de développement — aucune donnée réelle collectée n'est jamais
-lue ni modifiée par la suite de tests.
+Les tests du pipeline (`tests/pipeline/`) et de l'API (`tests/backend/`)
+créent automatiquement une base PostgreSQL de test dédiée (`<nom_base>_test`)
+au premier lancement, distincte de la base de développement — aucune donnée
+réelle collectée n'est jamais lue ni modifiée par les suites de tests.
 
 ## Structure du projet
 
