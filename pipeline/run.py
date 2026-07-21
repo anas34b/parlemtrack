@@ -9,7 +9,7 @@ import time
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from backend.app.core.config import get_settings
+from backend.app.core.config import Settings, get_settings
 from backend.app.core.logging import get_logger, setup_logging
 from backend.app.models import Depute
 from pipeline.collect.datan import mettre_a_jour_scores, recuperer_scores_datan
@@ -130,6 +130,39 @@ def _collecter_scrutins(session: Session) -> tuple[int, int, int]:
     return nb_traites, nb_nouveaux, nb_erreurs
 
 
+def _taches_non_critiques(session: Session, settings: Settings) -> None:
+    """Scores Datan, actualités RSS, invalidation du cache API.
+
+    Chaque tâche est isolée dans son propre try/except : un échec ici ne
+    doit jamais faire perdre la collecte principale (scrutins/députés).
+    """
+    try:
+        scores = recuperer_scores_datan()
+        nb_scores = mettre_a_jour_scores(session, scores)
+        session.commit()
+        logger.info("%d scores Datan mis à jour", nb_scores)
+    except Exception as exc:
+        session.rollback()
+        logger.warning("mise à jour des scores Datan échouée : %s", exc)
+
+    try:
+        import redis
+
+        client = redis.from_url(settings.redis_url, decode_responses=True)
+        enregistrer_actualites(client, recuperer_actualites())
+    except Exception as exc:
+        logger.warning("collecte des actualités RSS échouée : %s", exc)
+
+    try:
+        from backend.app.core.cache import invalider_prefixe
+
+        for prefixe in ("cache:scrutins", "cache:deputes"):
+            invalider_prefixe(prefixe)
+        logger.info("cache API invalidé")
+    except Exception as exc:
+        logger.warning("invalidation du cache API échouée : %s", exc)
+
+
 def executer_pipeline() -> None:
     """Orchestre un run complet : collecte, parsing, stockage, résumé."""
     setup_logging()
@@ -157,22 +190,7 @@ def executer_pipeline() -> None:
             session.rollback()
             raise
 
-        try:
-            scores = recuperer_scores_datan()
-            nb_scores = mettre_a_jour_scores(session, scores)
-            session.commit()
-            logger.info("%d scores Datan mis à jour", nb_scores)
-        except Exception as exc:  # job séparé, non critique pour le run principal
-            session.rollback()
-            logger.warning("mise à jour des scores Datan échouée : %s", exc)
-
-        try:
-            import redis
-
-            client = redis.from_url(settings.redis_url, decode_responses=True)
-            enregistrer_actualites(client, recuperer_actualites())
-        except Exception as exc:  # réseau RSS non critique pour le run
-            logger.warning("collecte des actualités RSS échouée : %s", exc)
+        _taches_non_critiques(session, settings)
 
         duree_s = time.monotonic() - debut
         log_collecte(
