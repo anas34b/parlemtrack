@@ -1,0 +1,27 @@
+{
+  "scrutin": {
+    "uid": "VTANR5L17V0003",
+    "numero": "3",
+    "dateScrutin": "2024-07-22",
+    "typeVote": { "libelleTypeVote": "scrutin public ordinaire" },
+    "sort": { "code": "adopté", "libelle": "l'Assemblée nationale a adopté" },
+    "titre": "scrutin avec dossierLegislatif sous forme d'objet",
+    "objet": {
+      "libelle": "titre du dossier",
+      "dossierLegislatif": {
+        "libelle": "Projet de loi de test",
+        "dossierRef": "DLR5L17N54083"
+      }
+    },
+    "syntheseVote": {
+      "decompte": {
+        "nonVotants": "0",
+        "pour": "1",
+        "contre": "0",
+        "abstentions": "0",
+        "nonVotantsVolontaires": "0"
+      }
+    },
+    "ventilationVotes": null
+  }
+}

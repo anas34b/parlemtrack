@@ -1,0 +1,19 @@
+{
+  "acteur": {
+    "uid": "PA1008",
+    "etatCivil": {
+      "ident": {
+        "civ": "M.",
+        "prenom": "Alain",
+        "nom": "David"
+      }
+    },
+    "mandats": {
+      "mandat": {
+        "typeOrgane": "GP",
+        "dateFin": "2023-01-01",
+        "organes": { "organeRef": "PO845401" }
+      }
+    }
+  }
+}

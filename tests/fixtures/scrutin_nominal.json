@@ -1,0 +1,92 @@
+{
+  "scrutin": {
+    "uid": "VTANR5L17V1144",
+    "numero": "1144",
+    "organeRef": "PO838901",
+    "legislature": "17",
+    "dateScrutin": "2025-03-24",
+    "typeVote": {
+      "codeTypeVote": "SPO",
+      "libelleTypeVote": "scrutin public ordinaire"
+    },
+    "sort": {
+      "code": "adopté",
+      "libelle": "l'Assemblée nationale a adopté"
+    },
+    "titre": "l'amendement n° 585 de M. Pauget à l'article 10 bis de la proposition de loi visant à sortir la France du piège du narcotrafic (première lecture).",
+    "objet": {
+      "libelle": "l'amendement n° 585 de M. Pauget à l'article 10 bis de la proposition de loi visant à sortir la France du piège du narcotrafic (première lecture).",
+      "dossierLegislatif": "DLR5L17N12345"
+    },
+    "syntheseVote": {
+      "nombreVotants": "102",
+      "suffragesExprimes": "93",
+      "nbrSuffragesRequis": "47",
+      "decompte": {
+        "nonVotants": "2",
+        "pour": "63",
+        "contre": "30",
+        "abstentions": "9",
+        "nonVotantsVolontaires": "0"
+      }
+    },
+    "ventilationVotes": {
+      "organe": {
+        "organeRef": "PO838901",
+        "groupes": {
+          "groupe": [
+            {
+              "organeRef": "PO845401",
+              "nombreMembresGroupe": "123",
+              "vote": {
+                "positionMajoritaire": "pour",
+                "decompteNominatif": {
+                  "nonVotants": null,
+                  "pours": {
+                    "votant": [
+                      { "acteurRef": "PA796118", "parDelegation": "false" },
+                      { "acteurRef": "PA841487", "parDelegation": "true" }
+                    ]
+                  },
+                  "contres": null,
+                  "abstentions": null,
+                  "nonVotantsVolontaires": null
+                }
+              }
+            },
+            {
+              "organeRef": "PO845407",
+              "nombreMembresGroupe": "80",
+              "vote": {
+                "positionMajoritaire": "contre",
+                "decompteNominatif": {
+                  "nonVotants": {
+                    "votant": [
+                      { "acteurRef": "PA606507", "parDelegation": "false" }
+                    ]
+                  },
+                  "pours": null,
+                  "contres": {
+                    "votant": [
+                      { "acteurRef": "PA720668", "parDelegation": "false" }
+                    ]
+                  },
+                  "abstentions": {
+                    "votant": [
+                      { "acteurRef": "PA793548", "parDelegation": "false" }
+                    ]
+                  },
+                  "nonVotantsVolontaires": {
+                    "votant": [
+                      { "acteurRef": "PA608016", "parDelegation": "false" }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

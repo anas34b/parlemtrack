@@ -1,0 +1,11 @@
+{
+  "organe": {
+    "uid": "PO845401",
+    "codeType": "GP",
+    "legislature": "17",
+    "libelle": "Ensemble pour la République",
+    "libelleAbrev": "EPR",
+    "couleurAssociee": "#0f62a4",
+    "viMoDe": { "dateDebut": "2024-07-18", "dateFin": null }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "scrutin": {
+    "uid": "VTANR5L17V0002",
+    "numero": "2",
+    "dateScrutin": "2024-07-21",
+    "typeVote": { "libelleTypeVote": "scrutin public solennel" },
+    "sort": { "code": "adopté", "libelle": "l'Assemblée nationale a adopté" },
+    "titre": "scrutin procédural sans synthèse",
+    "syntheseVote": null,
+    "ventilationVotes": null
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "scrutin": {
+    "uid": "VTANR5L17V0001",
+    "numero": "1",
+    "dateScrutin": "2024-07-20",
+    "typeVote": { "libelleTypeVote": "scrutin public ordinaire" },
+    "sort": { "code": "rejeté", "libelle": "l'Assemblée nationale n'a pas adopté" },
+    "titre": "scrutin de test à groupe unique",
+    "syntheseVote": {
+      "decompte": {
+        "nonVotants": "0",
+        "pour": "1",
+        "contre": "0",
+        "abstentions": "0",
+        "nonVotantsVolontaires": "0"
+      }
+    },
+    "ventilationVotes": {
+      "organe": {
+        "groupes": {
+          "groupe": {
+            "organeRef": "PO845401",
+            "vote": {
+              "decompteNominatif": {
+                "pours": {
+                  "votant": { "acteurRef": "PA796118", "parDelegation": "false" }
+                },
+                "contres": null,
+                "abstentions": null,
+                "nonVotants": null,
+                "nonVotantsVolontaires": null
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

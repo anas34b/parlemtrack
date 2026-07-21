@@ -1,0 +1,10 @@
+{
+  "organe": {
+    "uid": "PO730964",
+    "codeType": "GP",
+    "legislature": "15",
+    "libelle": "La République en Marche",
+    "libelleAbrev": "LREM",
+    "viMoDe": { "dateDebut": "2017-06-27", "dateFin": "2022-06-21" }
+  }
+}

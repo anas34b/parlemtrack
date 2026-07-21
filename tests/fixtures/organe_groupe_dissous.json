@@ -1,0 +1,11 @@
+{
+  "organe": {
+    "uid": "PO845520",
+    "codeType": "GP",
+    "legislature": "17",
+    "libelle": "À Droite",
+    "libelleAbrev": "AD",
+    "couleurAssociee": "#7a7a7a",
+    "viMoDe": { "dateDebut": "2024-07-18", "dateFin": "2024-09-11" }
+  }
+}

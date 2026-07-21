@@ -1,0 +1,26 @@
+{
+  "acteur": {
+    "uid": { "#text": "PA841605" },
+    "etatCivil": {
+      "ident": {
+        "civ": "M.",
+        "prenom": "Antoine",
+        "nom": "Golliot"
+      }
+    },
+    "mandats": {
+      "mandat": [
+        {
+          "typeOrgane": "GP",
+          "dateFin": null,
+          "organes": { "organeRef": "PO845401" }
+        },
+        {
+          "typeOrgane": "COMPER",
+          "dateFin": null,
+          "organes": { "organeRef": "PO59048" }
+        }
+      ]
+    }
+  }
+}

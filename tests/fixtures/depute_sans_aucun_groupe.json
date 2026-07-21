@@ -1,0 +1,19 @@
+{
+  "acteur": {
+    "uid": "PA2000",
+    "etatCivil": {
+      "ident": {
+        "civ": "M.",
+        "prenom": "Paul",
+        "nom": "Sansgroupe"
+      }
+    },
+    "mandats": {
+      "mandat": {
+        "typeOrgane": "COMPER",
+        "dateFin": null,
+        "organes": { "organeRef": "PO59048" }
+      }
+    }
+  }
+}
