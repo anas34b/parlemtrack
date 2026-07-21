@@ -1,7 +1,13 @@
 """Tests des fonctions d'upsert : idempotence, aucune suppression, pas de doublon."""
 
-from backend.app.models import Depute, Groupe, Scrutin, Vote
-from pipeline.store.upsert import desactiver_deputes_absents, upsert_depute, upsert_groupe, upsert_scrutin
+from backend.app.models import AnalyseIA, Depute, Groupe, Scrutin, Vote
+from pipeline.store.upsert import (
+    desactiver_deputes_absents,
+    inserer_analyse_ia,
+    upsert_depute,
+    upsert_groupe,
+    upsert_scrutin,
+)
 
 
 def _scrutin_data(**overrides: object) -> dict:
@@ -93,3 +99,28 @@ def test_upsert_scrutin_avec_votes_sans_doublon(db_session) -> None:
     db_session.flush()
 
     assert db_session.query(Vote).count() == 1
+
+
+def test_inserer_analyse_ia_insertion_puis_jamais_de_mise_a_jour(db_session) -> None:
+    upsert_scrutin(db_session, _scrutin_data())
+    db_session.flush()
+
+    analyse = {
+        "resume_factuel": "résumé initial",
+        "arguments_pour": ["a"],
+        "arguments_contre": ["b"],
+        "coherence_macro": "aligne",
+        "indicateurs_ref": ["INSEE"],
+        "modele_utilise": "mistral-large-latest",
+        "tokens_utilises": 100,
+    }
+    inserer_analyse_ia(db_session, "VTANR5L17V0001", analyse)
+    db_session.flush()
+
+    analyse_rejouee = {**analyse, "resume_factuel": "résumé qui ne doit jamais être stocké"}
+    inserer_analyse_ia(db_session, "VTANR5L17V0001", analyse_rejouee)
+    db_session.flush()
+
+    stockee = db_session.get(AnalyseIA, "VTANR5L17V0001")
+    assert stockee.resume_factuel == "résumé initial"
+    assert db_session.query(AnalyseIA).count() == 1

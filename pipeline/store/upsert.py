@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from backend.app.models import Depute, Groupe, Scrutin, Vote
+from backend.app.models import AnalyseIA, Depute, Groupe, Scrutin, Vote
 
 logger = logging.getLogger("pipeline.store.upsert")
 
@@ -85,6 +85,17 @@ def upsert_scrutin(session: Session, data: dict) -> bool:
     session.execute(stmt)
     insert_votes(session, data["uid"], votes)
     return nouveau
+
+
+def inserer_analyse_ia(session: Session, scrutin_uid: str, analyse: dict) -> None:
+    """Insère l'analyse IA d'un scrutin — une seule fois, jamais mise à jour ensuite.
+
+    `ON CONFLICT DO NOTHING` : si une analyse existe déjà pour ce scrutin
+    (ré-exécution accidentelle), elle est conservée telle quelle.
+    """
+    stmt = insert(AnalyseIA).values(scrutin_uid=scrutin_uid, **analyse)
+    stmt = stmt.on_conflict_do_nothing(index_elements=["scrutin_uid"])
+    session.execute(stmt) 
 
 
 def insert_votes(session: Session, scrutin_uid: str, votes: list[dict]) -> None:
