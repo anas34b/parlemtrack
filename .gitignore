@@ -26,6 +26,9 @@ frontend/.env*.local
 # Rapports de couverture
 coverage/
 
+# Captures d'écran générées par scripts/captures.mjs (volumineuses, régénérables)
+docs/captures/
+
 # Divers OS / éditeurs
 .DS_Store
 *.log
