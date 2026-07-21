@@ -22,7 +22,9 @@ services:
     container_name: parlemtrack_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      # Port hôte 6380 (au lieu du standard 6379) : un service Redis système
+      # tiers occupe déjà 6379 sur certaines machines de développement.
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
