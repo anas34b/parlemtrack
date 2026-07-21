@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #FAFAFA; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #2563EB; text-decoration: none; }
+  a:hover { color: #1D4ED8; text-decoration: underline; }
+  input::placeholder { color: #A1A1AA; }
+  input:focus { outline: none; border-color: #2563EB !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;color:#18181B">
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <sc-if value="{{ showPressBand }}" hint-placeholder-val="{{ true }}">
+    <div style="background:#F4F4F5;border-bottom:1px solid #E4E4E7">
+      <div style="max-width:720px;margin:0 auto;padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#71717A">
+        <span style="font-weight:600;color:#52525B">Revue de presse&nbsp;·</span>
+        <sc-for list="{{ pressLinks }}" as="p" hint-placeholder-count="3">
+          <a href="{{ p.url }}" style="color:#52525B;font-weight:500">{{ p.name }}</a>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+  </sc-if>
+
+  <header style="position:sticky;top:0;z-index:10;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border-bottom:1px solid #E4E4E7">
+    <div style="max-width:720px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px">
+      <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0">
+        <div style="width:28px;height:28px;border-radius:8px;background:#18181B;display:flex;align-items:center;justify-content:center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="#FAFAFA" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </div>
+        <span style="font-weight:700;font-size:16px;letter-spacing:-0.01em">ParlemTrack</span>
+      </div>
+      <div style="flex:1;position:relative;max-width:420px;margin-left:auto">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="7" stroke="#A1A1AA" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round"/></svg>
+        <input value="{{ searchQuery }}" onChange="{{ onSearchChange }}" type="text" placeholder="Rechercher un scrutin, un député..." style="width:100%;box-sizing:border-box;padding:9px 14px 9px 36px;border-radius:10px;border:1px solid #E4E4E7;background:#F4F4F5;font-size:14px;color:#18181B;font-family:inherit"/>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;max-width:720px;margin:0 auto;width:100%;box-sizing:border-box;padding:24px 20px 64px">
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin:4px 0 4px">Derniers scrutins</h1>
+        <p style="font-size:14.5px;color:#52525B;margin:0 0 20px;line-height:1.5">Les votes de l'Assemblée nationale, expliqués simplement.</p>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ visibleFeed }}" as="s" hint-placeholder-count="3">
+            <div onClick="{{ s.open }}" style="cursor:pointer;background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,0.03);transition:box-shadow .15s" style-hover="box-shadow:0 4px 14px rgba(0,0,0,0.07);border-color:#D4D4D8">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px">
+                <span style="font-size:12.5px;font-weight:600;color:#71717A">{{ s.date }}</span>
+                <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:{{ s.badgeBg }};color:{{ s.badgeText }};white-space:nowrap">{{ s.badgeLabel }}</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                <h2 style="font-size:17px;font-weight:700;margin:0 0 14px;line-height:1.35;letter-spacing:-0.01em">{{ s.titleVulgarise }}</h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:2px"><path d="M9 18l6-6-6-6" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="display:flex;height:8px;border-radius:999px;overflow:hidden;background:#F4F4F5;margin-bottom:8px">
+                <div style="width:{{ s.pourPct }}%;background:#10B981"></div>
+                <div style="width:{{ s.contrePct }}%;background:#EF4444"></div>
+                <div style="width:{{ s.abstPct }}%;background:#D4D4D8"></div>
+              </div>
+              <div style="display:flex;gap:16px;font-size:12.5px;color:#52525B;flex-wrap:wrap">
+                <span><b style="color:#059669">{{ s.pour }}</b> pour</span>
+                <span><b style="color:#DC2626">{{ s.contre }}</b> contre</span>
+                <span><b style="color:#71717A">{{ s.abstention }}</b> abst.</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:40px 0;color:#71717A;font-size:14px">Aucun scrutin ne correspond à « {{ searchQuery }} ».</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div onClick="{{ goHome }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#52525B;margin-bottom:18px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#52525B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Retour à l'accueil
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:12.5px;font-weight:600;color:#71717A">Scrutin n° {{ scrutin.numero }} · {{ scrutin.date }}</span>
+          <span style="font-size:12.5px;font-weight:700;padding:4px 12px;border-radius:999px;background:{{ scrutin.badgeBg }};color:{{ scrutin.badgeText }}">{{ scrutin.badgeLabel }}</span>
+        </div>
+        <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;line-height:1.35;margin:0 0 6px">{{ scrutin.titleVulgarise }}</h1>
+        <p style="font-size:13.5px;color:#71717A;line-height:1.5;margin:0 0 24px">{{ scrutin.titleOfficiel }}</p>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:22px;margin-bottom:20px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+            <div style="text-align:center">
+              <div style="font-size:26px;font-weight:800;color:#059669">{{ scrutin.pour }}</div>
+              <div style="font-size:12.5px;color:#71717A;font-weight:600">pour</div>
+            </div>
+            <div style="text-align:center;border-left:1px solid #E4E4E7;border-right:1px solid #E4E4E7">
+              <div style="font-size:26px;font-weight:800;color:#DC2626">{{ scrutin.contre }}</div>
+              <div style="font-size:12.5px;color:#71717A;font-weight:600">contre</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:26px;font-weight:800;color:#71717A">{{ scrutin.abstention }}</div>
+              <div style="font-size:12.5px;color:#71717A;font-weight:600">abstention</div>
+            </div>
+          </div>
+
+          <div style="font-size:13px;font-weight:700;color:#18181B;margin-bottom:12px">Vote par groupe</div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ scrutin.groupRows }}" as="g" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:126px;flex-shrink:0;display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#3F3F46">
+                  <span style="width:9px;height:9px;border-radius:3px;background:{{ g.color }};flex-shrink:0"></span>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.short }}</span>
+                </div>
+                <div style="flex:1;height:10px;background:#F4F4F5;border-radius:999px;overflow:hidden;display:flex">
+                  <div style="width:{{ g.pct }}%;height:100%;display:flex;border-radius:999px;overflow:hidden">
+                    <div style="width:{{ g.pourSeg }}%;height:100%;background:#10B981"></div>
+                    <div style="width:{{ g.contreSeg }}%;height:100%;background:#EF4444"></div>
+                    <div style="width:{{ g.abstSeg }}%;height:100%;background:#A1A1AA"></div>
+                  </div>
+                </div>
+                <div style="width:120px;flex-shrink:0;text-align:right;font-size:12px;color:#71717A;font-weight:600">{{ g.breakdown }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:22px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:#18181B;margin-bottom:14px">Qui a voté quoi (échantillon)</div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ scrutin.sampleVoters }}" as="v" hint-placeholder-count="4">
+              <div onClick="{{ v.open }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid #F0F0F1" style-hover="background:#FAFAFA">
+                <sc-if value="{{ v.isPour }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M20 6L9 17l-5-5" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+                <sc-if value="{{ v.isContre }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M18 6L6 18M6 6l12 12" stroke="#DC2626" stroke-width="2.6" stroke-linecap="round"/></svg></sc-if>
+                <sc-if value="{{ v.isAbst }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M5 12h14" stroke="#71717A" stroke-width="2.6" stroke-linecap="round"/></svg></sc-if>
+                <div style="flex:1">
+                  <div style="font-size:13.5px;font-weight:600;color:#18181B">{{ v.name }}</div>
+                  <div style="font-size:12px;color:#71717A">{{ v.groupLabel }} · {{ v.circo }}</div>
+                </div>
+                <div style="font-size:12.5px;font-weight:700;color:{{ v.color }}">{{ v.positionLabel }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:22px 22px 24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <div style="font-size:13px;font-weight:700;color:#18181B">Analyse</div>
+            <span title="{{ scrutin.coherence.detail }}" style="font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:{{ scrutin.coherence.bg }};color:{{ scrutin.coherence.text }}">Cohérence macro : {{ scrutin.coherence.label }}</span>
+          </div>
+          <p style="font-size:14px;line-height:1.6;color:#3F3F46;margin:0 0 20px">{{ scrutin.resume }}</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="border:1px solid #DCFCE7;background:#F0FDF4;border-radius:12px;padding:16px">
+              <div style="font-size:12.5px;font-weight:700;color:#047857;margin-bottom:10px;text-transform:uppercase;letter-spacing:.03em">Arguments pour</div>
+              <sc-for list="{{ scrutin.argsPour }}" as="a" hint-placeholder-count="3">
+                <div style="display:flex;gap:8px;margin-bottom:9px;font-size:13px;line-height:1.5;color:#14532D"><span style="flex-shrink:0">＋</span><span>{{ a }}</span></div>
+              </sc-for>
+            </div>
+            <div style="border:1px solid #FEE2E2;background:#FEF2F2;border-radius:12px;padding:16px">
+              <div style="font-size:12.5px;font-weight:700;color:#B91C1C;margin-bottom:10px;text-transform:uppercase;letter-spacing:.03em">Arguments contre</div>
+              <sc-for list="{{ scrutin.argsContre }}" as="a" hint-placeholder-count="3">
+                <div style="display:flex;gap:8px;margin-bottom:9px;font-size:13px;line-height:1.5;color:#7F1D1D"><span style="flex-shrink:0">－</span><span>{{ a }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;font-size:12px;color:#A1A1AA">Sources : {{ scrutin.sourcesText }}</div>
+        </div>
+
+        <p style="font-size:12px;color:#A1A1AA;line-height:1.5;margin:18px 4px 0">Note : environ 40 % des votes à l'Assemblée nationale ont lieu à main levée et ne sont pas comptabilisés nominativement ; ce détail ne couvre que les scrutins publics.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDeputy }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div onClick="{{ backToScrutin }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#52525B;margin-bottom:18px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#52525B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Retour au scrutin
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:24px;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+            <div style="width:76px;height:76px;border-radius:50%;background:#F4F4F5;border:3px solid {{ deputy.color }};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#3F3F46;flex-shrink:0">{{ deputy.initials }}</div>
+            <div style="flex:1;min-width:180px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                <h1 style="font-size:19px;font-weight:800;margin:0;letter-spacing:-0.01em">{{ deputy.name }}</h1>
+                <sc-if value="{{ deputy.mandateEnded }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F4F4F5;color:#52525B;border:1px solid #E4E4E7">Mandat terminé</span>
+                </sc-if>
+                <sc-if value="{{ deputy.isRapporteur }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#EFF6FF;color:#1D4ED8;border:1px solid #DBEAFE">Rapporteur du texte</span>
+                </sc-if>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:13.5px;color:#52525B;margin-bottom:2px">
+                <span style="width:9px;height:9px;border-radius:3px;background:{{ deputy.color }}"></span>
+                <span style="font-weight:600">{{ deputy.groupLabel }}</span>
+              </div>
+              <div style="font-size:13px;color:#71717A">{{ deputy.circo }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+          <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:18px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:9px"><span style="font-size:12.5px;font-weight:600;color:#52525B">Participation</span><span style="font-size:13px;font-weight:800">{{ deputy.participation }}%</span></div>
+            <div style="height:9px;background:#F4F4F5;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ deputy.participation }}%;background:#18181B;border-radius:999px"></div></div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:18px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:9px"><span style="font-size:12.5px;font-weight:600;color:#52525B">Loyauté au groupe</span><span style="font-size:13px;font-weight:800">{{ deputy.loyalty }}%</span></div>
+            <div style="height:9px;background:#F4F4F5;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ deputy.loyalty }}%;background:{{ deputy.color }};border-radius:999px"></div></div>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:22px;margin-bottom:18px">
+          <div style="font-size:13px;font-weight:700;color:#18181B;margin-bottom:6px">Historique des votes</div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ deputy.history }}" as="h" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid #F0F0F1">
+                <sc-if value="{{ h.isPour }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M20 6L9 17l-5-5" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+                <sc-if value="{{ h.isContre }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M18 6L6 18M6 6l12 12" stroke="#DC2626" stroke-width="2.6" stroke-linecap="round"/></svg></sc-if>
+                <sc-if value="{{ h.isAbst }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M5 12h14" stroke="#71717A" stroke-width="2.6" stroke-linecap="round"/></svg></sc-if>
+                <div style="flex:1">
+                  <div style="font-size:13.5px;font-weight:600;color:#18181B;line-height:1.4">{{ h.title }}</div>
+                  <div style="font-size:12px;color:#71717A">{{ h.date }}</div>
+                </div>
+                <div style="font-size:12.5px;font-weight:700;color:{{ h.color }}">{{ h.positionLabel }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:#71717A;margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em">Autres membres du groupe</div>
+          <div style="background:#FFFFFF;border:1px solid #E4E4E7;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#F4F4F5;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;color:#71717A;flex-shrink:0">EL</div>
+            <div style="flex:1">
+              <div style="font-size:13.5px;font-weight:600;color:#3F3F46">Élise Rambert</div>
+              <div style="font-size:12px;color:#71717A">{{ deputy.groupLabel }}</div>
+            </div>
+            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F4F4F5;color:#52525B;border:1px solid #E4E4E7">Mandat terminé</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialView&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;home&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;home&quot;, &quot;detail&quot;, &quot;deputy&quot;], &quot;section&quot;: &quot;Navigation&quot;}, &quot;showPressBand&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Accueil&quot;}}">
+const GROUPS = {
+  'RN': { label: 'Rassemblement National', short: 'RN', color: '#14204B' },
+  'EPR': { label: 'Ensemble pour la République', short: 'EPR', color: '#E0B400' },
+  'LFI-NFP': { label: 'La France insoumise - NFP', short: 'LFI-NFP', color: '#C6132E' },
+  'SOC': { label: 'Socialistes et apparentés', short: 'SOC', color: '#EC4899' },
+  'DR': { label: 'Droite Républicaine', short: 'DR', color: '#1178C4' },
+  'ECOS': { label: 'Écologiste et Social', short: 'ECOS', color: '#3CAA35' },
+  'DEM': { label: 'Les Démocrates (MoDem)', short: 'DEM', color: '#F5821F' },
+  'HOR': { label: 'Horizons & Indépendants', short: 'HOR', color: '#00A19A' },
+  'LIOT': { label: 'Libertés, Indép., Outre-mer et Territoires', short: 'LIOT', color: '#A9824A' },
+  'GDR': { label: 'Gauche Démocrate et Républicaine', short: 'GDR', color: '#7A1E2E' },
+  'UDR': { label: 'Union des droites pour la République', short: 'UDR', color: '#4C2E7A' },
+  'NI': { label: 'Non inscrits', short: 'NI', color: '#9CA3AF' },
+  'GAUCHE': { label: 'Groupes de gauche (LFI-NFP, SOC, ECOS, GDR)', short: 'Gauche', color: '#B91C1C' },
+  'CENTRE': { label: 'Bloc central (EPR, DEM, HOR)', short: 'Bloc central', color: '#E0B400' },
+  'DROITE': { label: 'Droite et RN (DR, RN, LIOT, UDR)', short: 'Droite / RN', color: '#14204B' },
+  'MAJ': { label: 'Majorité transpartisane (EPR, SOC, DR, DEM, HOR, LIOT, ECOS, GDR)', short: 'Majorité', color: '#3CAA35' }
+};
+
+const DEPUTIES = {
+  d1: { id: 'd1', name: 'Camille Berthier', group: 'RN', circo: 'Pas-de-Calais (7e circ.)', mandateEnded: false, participation: 92, loyalty: 97, initials: 'CB',
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'pour' },
+      { title: 'Budget de la sécurité sociale 2026, partie recettes', date: '2 juillet 2026', pos: 'contre' },
+      { title: 'PPL sur la présomption de légitime défense', date: '24 juin 2026', pos: 'pour' },
+      { title: 'Encadrement des loyers en zones tendues', date: '14 juillet 2026', pos: 'contre' }
+    ]},
+  d2: { id: 'd2', name: 'Julien Faure', group: 'EPR', circo: 'Haute-Garonne (3e circ.)', mandateEnded: false, participation: 88, loyalty: 90, initials: 'JF',
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'pour' },
+      { title: 'Simplification des démarches pour les aidants familiaux', date: '9 juillet 2026', pos: 'pour' },
+      { title: 'Encadrement des loyers en zones tendues', date: '14 juillet 2026', pos: 'contre' },
+      { title: 'PLFSS 2026, partie dépenses', date: '1 juillet 2026', pos: 'abstention' }
+    ]},
+  d3: { id: 'd3', name: 'Nadia Ghali', group: 'LFI-NFP', circo: 'Seine-Saint-Denis (5e circ.)', mandateEnded: false, participation: 95, loyalty: 99, initials: 'NG',
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'abstention' },
+      { title: 'Encadrement des loyers en zones tendues', date: '14 juillet 2026', pos: 'pour' },
+      { title: 'Simplification des démarches pour les aidants familiaux', date: '9 juillet 2026', pos: 'contre' },
+      { title: 'Budget de la sécurité sociale 2026, partie recettes', date: '2 juillet 2026', pos: 'contre' }
+    ]},
+  d4: { id: 'd4', name: 'Marc Delannoy', group: 'ECOS', circo: 'Ille-et-Vilaine (2e circ.)', mandateEnded: false, participation: 81, loyalty: 76, initials: 'MD',
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'contre' },
+      { title: 'Encadrement des loyers en zones tendues', date: '14 juillet 2026', pos: 'pour' },
+      { title: 'PPL sur la présomption de légitime défense', date: '24 juin 2026', pos: 'contre' }
+    ]},
+  d5: { id: 'd5', name: 'Sophie Tran', group: 'UDR', circo: 'Alpes-Maritimes (6e circ.)', mandateEnded: false, participation: 70, loyalty: 65, initials: 'ST',
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'abstention' },
+      { title: 'PPL sur la présomption de légitime défense', date: '24 juin 2026', pos: 'pour' }
+    ]},
+  duparay: { id: 'duparay', name: 'Lionel Duparay', group: 'DR', circo: 'Saône-et-Loire (5e circ.)', mandateEnded: false, participation: 89, loyalty: 93, initials: 'LD', isRapporteur: true,
+    history: [
+      { title: 'Ensemble de la PPL relative au sport professionnel (CMP)', date: '20 juillet 2026', pos: 'pour' },
+      { title: "Loi d'urgence agricole", date: '21 juillet 2026', pos: 'pour' },
+      { title: 'Droit à l’aide à mourir, lecture définitive', date: '15 juillet 2026', pos: 'contre' }
+    ]}
+};
+
+function groupRow(key, pour, contre, abst, maxTotal) {
+  const g = GROUPS[key];
+  const total = pour + contre + abst;
+  const pct = Math.max(4, Math.round((total / maxTotal) * 100));
+  const pourSeg = total ? Math.round((pour / total) * 100) : 0;
+  const contreSeg = total ? Math.round((contre / total) * 100) : 0;
+  const abstSeg = total ? Math.max(0, 100 - pourSeg - contreSeg) : 100;
+  const parts = [];
+  if (pour) parts.push(pour + ' pour');
+  if (contre) parts.push(contre + ' contre');
+  if (abst) parts.push(abst + ' abst.');
+  return { short: g.short, color: g.color, pct, pourSeg, contreSeg, abstSeg, breakdown: parts.join(' · ') };
+}
+
+function posMeta(pos) {
+  if (pos === 'pour') return { isPour: true, isContre: false, isAbst: false, positionLabel: 'Pour', color: '#059669' };
+  if (pos === 'contre') return { isPour: false, isContre: true, isAbst: false, positionLabel: 'Contre', color: '#DC2626' };
+  return { isPour: false, isContre: false, isAbst: true, positionLabel: 'Abstention', color: '#71717A' };
+}
+
+const SCRUTINS = {
+  '8418': {
+    numero: '8418', date: '20 juillet 2026', adopted: true,
+    titleVulgarise: 'Réforme du financement et de la gouvernance du sport professionnel',
+    titleOfficiel: "Ensemble de la proposition de loi relative à l'organisation, à la gestion et au financement du sport professionnel (commission mixte paritaire)",
+    pour: 359, contre: 1, abstention: 81,
+    groups: [
+      ['RN', 106, 0, 0], ['EPR', 53, 0, 1], ['LFI-NFP', 0, 0, 52], ['SOC', 38, 0, 0],
+      ['DR', 43, 0, 0], ['ECOS', 31, 1, 0], ['DEM', 26, 0, 0], ['HOR', 35, 0, 0],
+      ['LIOT', 17, 0, 0], ['GDR', 0, 0, 15], ['UDR', 4, 0, 13], ['NI', 6, 0, 0]
+    ],
+    voters: [ ['duparay','pour'], ['d1','pour'], ['d2','pour'], ['d3','abstention'], ['d4','contre'], ['d5','abstention'] ],
+    resume: "Ce texte, issu d'une commission mixte paritaire, réforme le modèle économique et la gouvernance des clubs et fédérations sportifs professionnels. Il a été adopté à une très large majorité transpartisane, avec une abstention notable du groupe LFI-NFP et d'une partie du groupe UDR.",
+    argsPour: [
+      "Sécurise le financement des clubs face à la concurrence internationale et aux droits TV en baisse.",
+      "Renforce les obligations de transparence financière et de contrôle de gestion des clubs professionnels.",
+      "Fait consensus entre la quasi-totalité des groupes, signe d'un texte technique plus que clivant."
+    ],
+    argsContre: [
+      "Une partie de la gauche juge insuffisant le volet consacré à l'encadrement salarial et à la régulation des agents.",
+      "L'abstention de LFI-NFP pointe un manque de garanties sur le sport amateur et les petits clubs.",
+      "Le texte laisse en suspens le financement pérenne des infrastructures locales."
+    ],
+    coherence: { label: 'Aligné', bg: '#F0FDF4', text: '#047857', detail: "Le volet financier est cohérent avec le poids économique du secteur sportif mesuré par l'INSEE et les tendances de consommation des ménages suivies par la Banque de France." },
+    sourcesText: 'Assemblée nationale (scrutin n°8418), INSEE (comptes du sport), Banque de France (note de conjoncture).'
+  },
+  'AGRI': {
+    numero: '8451', date: '21 juillet 2026', adopted: true,
+    titleVulgarise: "Loi d'urgence agricole : réponse aux difficultés du monde agricole",
+    titleOfficiel: "Projet de loi d'urgence pour la protection et la souveraineté agricoles (lecture définitive après commission mixte paritaire)",
+    pour: 296, contre: 224, abstention: 41,
+    groups: [ ['DROITE', 186, 0, 0], ['CENTRE', 110, 53, 0], ['GAUCHE', 0, 171, 23], ['NI', 0, 0, 18] ],
+    voters: [ ['d1','pour'], ['d2','pour'], ['d3','contre'] ],
+    resume: "Ce texte d'urgence autorise, à titre dérogatoire, la réintroduction de deux pesticides interdits en France mais encore autorisés au niveau européen, l'acétamipride et le flupyradifurone. Il a été adopté par une coalition allant du bloc central à l'extrême droite, la quasi-totalité de la gauche votant contre et une partie de la majorité gouvernementale se divisant sur ce point.",
+    argsPour: [
+      "Répondrait à une urgence économique du secteur agricole face à des concurrents européens où ces produits restent autorisés.",
+      "Prévoit un usage dérogatoire, encadré et limité dans le temps selon ses défenseurs."
+    ],
+    argsContre: [
+      "Réintroduirait deux substances interdites en France pour leur impact sur la santé et les pollinisateurs.",
+      "Créerait un écart entre la réglementation nationale et les alertes sanitaires ayant motivé leur interdiction initiale."
+    ],
+    coherence: { label: 'Contradictoire', bg: '#FDF2F8', text: '#BE185D', detail: "Le compromis oppose les objectifs de compétitivité agricole, suivis par la Banque de France dans la balance commerciale agricole, aux alertes sanitaires de l'INSEE et de l'ANSES sur l'exposition aux pesticides." },
+    sourcesText: 'Assemblée nationale (scrutin n°8451), INSEE (comptes de l’agriculture), Banque de France (commerce extérieur agricole).'
+  },
+  'AAM': {
+    numero: '8439', date: '15 juillet 2026', adopted: true,
+    titleVulgarise: "Droit à l'aide à mourir : l'Assemblée a le dernier mot",
+    titleOfficiel: "Proposition de loi relative au droit à l'aide à mourir (lecture définitive, dernier mot de l'Assemblée nationale)",
+    pour: 291, contre: 241, abstention: 0,
+    groups: [ ['GAUCHE', 180, 14, 0], ['CENTRE', 111, 52, 0], ['DROITE', 0, 175, 0] ],
+    voters: [ ['d3','pour'], ['d2','pour'], ['d1','contre'] ],
+    resume: "Ce texte crée un droit à l'aide à mourir pour les personnes majeures atteintes d'une affection grave et incurable, sous conditions médicales strictes. Après un désaccord persistant avec le Sénat, l'Assemblée nationale a eu le dernier mot et adopté définitivement le texte, la gauche et le centre votant largement pour, la droite et l'extrême droite votant majoritairement contre.",
+    argsPour: [
+      "Répondrait à une demande sociétale ancienne, portée par des propositions de loi déposées depuis les années 1970.",
+      "Encadrerait l'accès par des critères médicaux précis et un contrôle du discernement du patient."
+    ],
+    argsContre: [
+      "Soulèverait des inquiétudes sur la protection des personnes vulnérables et des majeurs protégés.",
+      "Le gouvernement a annoncé saisir le Conseil constitutionnel sur plusieurs dispositions contestées avant toute application."
+    ],
+    coherence: { label: 'Mitigé', bg: '#FFFBEB', text: '#B45309', detail: "Le texte est adopté politiquement mais sa conformité constitutionnelle reste incertaine : trois dispositions doivent encore être examinées par le Conseil constitutionnel." },
+    sourcesText: 'Assemblée nationale (scrutin n°8439), Conseil constitutionnel (saisine annoncée).'
+  }
+};
+
+class Component extends DCLogic {
+  state = { view: null, scrutinId: '8418', deputyId: null, searchQuery: '' };
+
+  componentDidMount() {
+    if (!this.state.view) this.setState({ view: this.props.initialView || 'home' });
+  }
+
+  buildScrutin(id) {
+    const s = SCRUTINS[id];
+    const maxTotal = Math.max(...s.groups.map(g => g[1] + g[2] + g[3]));
+    const groupRows = s.groups.map(g => groupRow(g[0], g[1], g[2], g[3], maxTotal));
+    const sampleVoters = s.voters.map(([did, pos]) => {
+      const d = DEPUTIES[did];
+      const m = posMeta(pos);
+      return { name: d.name, groupLabel: GROUPS[d.group].label, circo: d.circo, color: m.color,
+        positionLabel: m.positionLabel, isPour: m.isPour, isContre: m.isContre, isAbst: m.isAbst,
+        open: () => this.setState({ view: 'deputy', deputyId: did, scrutinId: id }) };
+    });
+    return {
+      numero: s.numero, date: s.date,
+      badgeLabel: s.adopted ? 'Adopté' : 'Rejeté',
+      badgeBg: s.adopted ? '#F0FDF4' : '#FEF2F2',
+      badgeText: s.adopted ? '#047857' : '#B91C1C',
+      titleVulgarise: s.titleVulgarise, titleOfficiel: s.titleOfficiel,
+      pour: s.pour, contre: s.contre, abstention: s.abstention,
+      groupRows, sampleVoters, resume: s.resume, argsPour: s.argsPour, argsContre: s.argsContre,
+      coherence: s.coherence, sourcesText: s.sourcesText
+    };
+  }
+
+  buildDeputy(id) {
+    const d = DEPUTIES[id];
+    const g = GROUPS[d.group];
+    const history = d.history.map(h => {
+      const m = posMeta(h.pos);
+      return { title: h.title, date: h.date, positionLabel: m.positionLabel, color: m.color,
+        isPour: m.isPour, isContre: m.isContre, isAbst: m.isAbst };
+    });
+    return { name: d.name, groupLabel: g.label, color: g.color, circo: d.circo,
+      mandateEnded: d.mandateEnded, isRapporteur: !!d.isRapporteur, participation: d.participation, loyalty: d.loyalty,
+      initials: d.initials, history };
+  }
+
+  renderVals() {
+    const view = this.state.view || 'home';
+    const q = this.state.searchQuery.trim().toLowerCase();
+    const feedIds = ['8418', 'AGRI', 'AAM'];
+    const feedRaw = feedIds.map(id => {
+      const s = SCRUTINS[id];
+      const total = s.pour + s.contre + s.abstention;
+      return {
+        id, date: s.date, titleVulgarise: s.titleVulgarise,
+        badgeLabel: s.adopted ? 'Adopté' : 'Rejeté',
+        badgeBg: s.adopted ? '#F0FDF4' : '#FEF2F2',
+        badgeText: s.adopted ? '#047857' : '#B91C1C',
+        pour: s.pour, contre: s.contre, abstention: s.abstention,
+        pourPct: Math.round(s.pour / total * 100), contrePct: Math.round(s.contre / total * 100), abstPct: Math.round(s.abstention / total * 100),
+        open: () => this.setState({ view: 'detail', scrutinId: id })
+      };
+    });
+    const visibleFeed = q ? feedRaw.filter(s => s.titleVulgarise.toLowerCase().includes(q)) : feedRaw;
+
+    return {
+      isHome: view === 'home', isDetail: view === 'detail', isDeputy: view === 'deputy',
+      showPressBand: this.props.showPressBand !== false,
+      pressLinks: [{ name: 'Le Monde', url: '#' }, { name: 'Le Figaro', url: '#' }, { name: 'AFP', url: '#' }],
+      searchQuery: this.state.searchQuery,
+      onSearchChange: e => this.setState({ searchQuery: e.target.value }),
+      visibleFeed, noResults: visibleFeed.length === 0,
+      goHome: () => this.setState({ view: 'home', searchQuery: '' }),
+      scrutin: this.buildScrutin(this.state.scrutinId),
+      deputy: this.state.deputyId ? this.buildDeputy(this.state.deputyId) : this.buildDeputy('duparay'),
+      backToScrutin: () => this.setState({ view: 'detail' })
+    };
+  }
+}
+
+</script>
+</body>
+</html>
