@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
     cache_ttl_s: int = 300
     rate_limit: str = "60/minute"
+    ia_lot_taille_auto: int = 5
 
 
 @lru_cache

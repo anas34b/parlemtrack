@@ -10,6 +10,9 @@ select = ["E", "F", "I", "UP", "B"]
 # Depends()/Query() en valeur par défaut est le pattern d'injection de
 # dépendances officiel de FastAPI, pas un piège d'argument par défaut mutable.
 "backend/app/api/routes/*.py" = ["B008"]
+# Prompt système imposé tel quel par MISSION_BC02.md : ne pas le reformater
+# en lignes courtes artificielles, la fidélité au texte prime.
+"pipeline/ia/prompt_builder.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
