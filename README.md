@@ -39,7 +39,8 @@ alembic upgrade head
 Les commandes ci-dessous supposent le venv activé (`source .venv/bin/activate`).
 
 ```bash
-# Pipeline de collecte (Phase 1)
+# Pipeline de collecte (Phase 1) : télécharge, parse et stocke scrutins,
+# députés, groupes et scores Datan ; met à jour le cache RSS des actualités
 python -m pipeline.run
 
 # API (Phase 2)
@@ -51,10 +52,16 @@ uvicorn backend.app.main:app --reload
 Toujours avec le venv activé :
 
 ```bash
-ruff check .              # lint Python
-pytest --cov              # tests + couverture
-docker compose down       # arrêter les services locaux
+ruff check .                          # lint Python
+pytest --cov                          # tous les tests + couverture
+pytest tests/pipeline --cov=pipeline  # tests du pipeline seul (base PostgreSQL de test requise)
+docker compose down                   # arrêter les services locaux
 ```
+
+Les tests du pipeline (`tests/pipeline/`) créent automatiquement une base
+PostgreSQL de test dédiée (`<nom_base>_test`) au premier lancement, distincte
+de la base de développement — aucune donnée réelle collectée n'est jamais
+lue ni modifiée par la suite de tests.
 
 ## Structure du projet
 
