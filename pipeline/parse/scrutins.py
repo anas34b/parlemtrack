@@ -88,10 +88,11 @@ def parse_scrutin(raw: dict) -> dict:
         decompte = synthese.get("decompte", {}) or {}
 
     objet = data.get("objet") or {}
+    numero = _to_int(data.get("numero"))
 
     return {
         "uid": data["uid"],
-        "numero": _to_int(data.get("numero")),
+        "numero": numero,
         "date_scrutin": data["dateScrutin"],
         "titre": data.get("titre", ""),
         "type_vote": data.get("typeVote", {}).get("libelleTypeVote", ""),
@@ -101,6 +102,7 @@ def parse_scrutin(raw: dict) -> dict:
         "nb_abstention": _to_int(decompte.get("abstentions")),
         "nb_non_votants": _to_int(decompte.get("nonVotants")),
         "dossier_ref": _extract_dossier_ref(objet),
-        "lien_an": f"https://www.assemblee-nationale.fr/dyn/17/scrutins/{data['uid']}",
+        # Le site AN adresse un scrutin par son numéro, pas par son uid (BUG-006).
+        "lien_an": f"https://www.assemblee-nationale.fr/dyn/17/scrutins/{numero}",
         "votes": _parse_votes(data.get("ventilationVotes")),
     }

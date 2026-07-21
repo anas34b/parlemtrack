@@ -67,3 +67,10 @@ def test_scrutin_dossier_legislatif_objet_donne_la_reference() -> None:
     """Piège AN : `objet.dossierLegislatif` est parfois un objet, parfois une chaîne."""
     resultat = parse_scrutin(_load("scrutin_dossier_objet.json"))
     assert resultat["dossier_ref"] == "DLR5L17N54083"
+
+
+def test_scrutin_lien_an_construit_avec_le_numero_pas_luid() -> None:
+    """BUG-006 : le site AN adresse un scrutin par son numéro (.../scrutins/1144),
+    pas par son uid (.../scrutins/VTANR5L17V1144, qui renvoie 404)."""
+    resultat = parse_scrutin(_load("scrutin_nominal.json"))
+    assert resultat["lien_an"] == "https://www.assemblee-nationale.fr/dyn/17/scrutins/1144"
