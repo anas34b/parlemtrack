@@ -4,7 +4,7 @@ Tracker parlementaire français : données open data de l'Assemblée nationale e
 
 ## Stack
 
-Python 3.12 / FastAPI / SQLAlchemy 2.x / PostgreSQL 16 / Redis 7 / Next.js 14 (à venir en Phase 4).
+Python 3.12 / FastAPI / SQLAlchemy 2.x / PostgreSQL 16 / Redis 7 / Next.js 14+ (App Router, TypeScript, PWA).
 
 ## Installation
 
@@ -47,6 +47,14 @@ python -m pipeline.run
 uvicorn backend.app.main:app --reload
 ```
 
+Frontend (dans un second terminal, sans le venv Python) :
+
+```bash
+cd frontend
+npm install
+npm run dev   # http://localhost:3000, branché sur l'API ci-dessus
+```
+
 ## Commandes utiles
 
 Toujours avec le venv activé :
@@ -67,9 +75,9 @@ réelle collectée n'est jamais lue ni modifiée par les suites de tests.
 ## Structure du projet
 
 ```
-pipeline/    collecte, parsing et stockage des données AN
+pipeline/    collecte, parsing, stockage et analyse IA des données AN
 backend/     API FastAPI
-frontend/    interface Next.js (Phase 4)
+frontend/    interface Next.js (App Router, TypeScript, PWA)
 tests/       tests pytest (pipeline, backend) et fixtures
 docs/        manuels, fiches de bugs, cahier de recettes
 alembic/     migrations de base de données
