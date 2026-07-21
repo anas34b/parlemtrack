@@ -6,5 +6,14 @@ extend-exclude = ["alembic/versions"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.per-file-ignores]
+# Depends()/Query() en valeur par défaut est le pattern d'injection de
+# dépendances officiel de FastAPI, pas un piège d'argument par défaut mutable.
+"backend/app/api/routes/*.py" = ["B008"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Garantit que `backend` et `pipeline` sont importables depuis la racine du
+# dépôt quelle que soit la présence des __init__.py dans tests/ (voir
+# docs/bugs/BUG-008.md : ce point a cassé la CI faute de ce réglage explicite).
+pythonpath = ["."]
