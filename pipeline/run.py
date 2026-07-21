@@ -15,6 +15,7 @@ from backend.app.models import Depute
 from pipeline.collect.datan import mettre_a_jour_scores, recuperer_scores_datan
 from pipeline.collect.downloader import telecharger_zip
 from pipeline.collect.rss_presse import recuperer_actualites
+from pipeline.ia.generer_analyses import generer_lot, scrutins_sans_analyse
 from pipeline.parse.deputes import a_mandat_assemblee, parse_depute
 from pipeline.parse.organes import parse_groupe
 from pipeline.parse.scrutins import parse_scrutin
@@ -130,12 +131,38 @@ def _collecter_scrutins(session: Session) -> tuple[int, int, int]:
     return nb_traites, nb_nouveaux, nb_erreurs
 
 
-def _taches_non_critiques(session: Session, settings: Settings) -> None:
-    """Scores Datan, actualités RSS, invalidation du cache API.
+def _generer_analyses_ia(session: Session, settings: Settings) -> int:
+    """Génère un petit lot d'analyses IA automatique par run (mode dégradé si pas de clé).
+
+    Volontairement borné à `ia_lot_taille_auto` (par défaut 5) pour qu'un run
+    de pipeline classique ne consomme jamais un budget IA incontrôlé : les
+    lots de rattrapage plus larges se lancent explicitement via
+    `pipeline.ia.generer_analyses` (voir docs/manuels/mise_a_jour.md).
+    """
+    if not settings.mistral_api_key:
+        logger.warning("analyses IA sautées (clé absente)")
+        return 0
+    uids = scrutins_sans_analyse(session, limite=settings.ia_lot_taille_auto)
+    if not uids:
+        return 0
+    resultat = generer_lot(session, uids)
+    return resultat["nb_generees"]
+
+
+def _taches_non_critiques(session: Session, settings: Settings) -> int:
+    """Scores Datan, analyses IA, actualités RSS, invalidation du cache API.
 
     Chaque tâche est isolée dans son propre try/except : un échec ici ne
     doit jamais faire perdre la collecte principale (scrutins/députés).
+    Retourne le nombre d'analyses IA générées, pour le résumé de run.
     """
+    nb_analyses_generees = 0
+    try:
+        nb_analyses_generees = _generer_analyses_ia(session, settings)
+    except Exception as exc:
+        session.rollback()
+        logger.warning("génération des analyses IA échouée : %s", exc)
+
     try:
         scores = recuperer_scores_datan()
         nb_scores = mettre_a_jour_scores(session, scores)
@@ -161,6 +188,8 @@ def _taches_non_critiques(session: Session, settings: Settings) -> None:
         logger.info("cache API invalidé")
     except Exception as exc:
         logger.warning("invalidation du cache API échouée : %s", exc)
+
+    return nb_analyses_generees
 
 
 def executer_pipeline() -> None:
@@ -190,14 +219,14 @@ def executer_pipeline() -> None:
             session.rollback()
             raise
 
-        _taches_non_critiques(session, settings)
+        nb_analyses_generees = _taches_non_critiques(session, settings)
 
         duree_s = time.monotonic() - debut
         log_collecte(
             session,
             nb_scrutins_traites=nb_scrutins,
             nb_nouveaux=nb_nouveaux,
-            nb_analyses_generees=0,
+            nb_analyses_generees=nb_analyses_generees,
             nb_erreurs=nb_erreurs,
             duree_s=duree_s,
             statut="succes" if nb_erreurs == 0 else "partiel",

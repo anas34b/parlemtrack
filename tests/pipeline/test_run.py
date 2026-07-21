@@ -3,9 +3,10 @@
 import json
 from unittest.mock import Mock, patch
 
+from backend.app.core.config import Settings
 from backend.app.models import Depute, Groupe, Scrutin
-from pipeline.run import _collecter_deputes_et_groupes, _collecter_scrutins
-from pipeline.store.upsert import upsert_depute
+from pipeline.run import _collecter_deputes_et_groupes, _collecter_scrutins, _generer_analyses_ia
+from pipeline.store.upsert import upsert_depute, upsert_scrutin
 
 
 def _archive_fausse(fichiers: dict[str, dict]) -> Mock:
@@ -160,3 +161,42 @@ def test_collecter_scrutins_erreur_de_parsing_loggee_sans_lever(db_session) -> N
         nb_traites, nb_nouveaux, nb_erreurs = _collecter_scrutins(db_session)
 
     assert (nb_traites, nb_nouveaux, nb_erreurs) == (0, 0, 1)
+
+
+def _settings(mistral_api_key: str = "") -> Settings:
+    return Settings(
+        database_url="x", redis_url="x", mistral_api_key=mistral_api_key, ia_lot_taille_auto=5
+    )
+
+
+def test_generer_analyses_ia_mode_degrade_sans_cle(db_session) -> None:
+    resultat = _generer_analyses_ia(db_session, _settings(mistral_api_key=""))
+    assert resultat == 0
+
+
+def test_generer_analyses_ia_avec_cle_genere_le_lot_borne(db_session) -> None:
+    upsert_scrutin(
+        db_session,
+        {
+            "uid": "VTA1",
+            "numero": 1,
+            "date_scrutin": "2024-07-20",
+            "titre": "scrutin test",
+            "type_vote": "scrutin public ordinaire",
+            "sort": "adopté",
+            "nb_pour": 1,
+            "nb_contre": 0,
+            "nb_abstention": 0,
+            "nb_non_votants": 0,
+            "dossier_ref": None,
+            "lien_an": None,
+            "votes": [],
+        },
+    )
+    db_session.commit()
+
+    with patch("pipeline.run.generer_lot", return_value={"nb_generees": 1, "nb_erreurs": 0}) as mock_lot:
+        resultat = _generer_analyses_ia(db_session, _settings(mistral_api_key="fake"))
+
+    assert resultat == 1
+    mock_lot.assert_called_once_with(db_session, ["VTA1"])

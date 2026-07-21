@@ -46,9 +46,13 @@ def engine(_creer_base_test):
 
 @pytest.fixture
 def db_session(engine):
+    """Session isolée par savepoint : un `session.commit()` dans le code testé
+    (ex. génération d'analyses IA par lot) ne valide qu'un SAVEPOINT imbriqué,
+    jamais la transaction externe — celle-ci est toujours annulée en fin de
+    test, quel que soit le nombre de commits internes effectués."""
     connection = engine.connect()
     transaction = connection.begin()
-    session = Session(bind=connection)
+    session = Session(bind=connection, join_transaction_mode="create_savepoint")
 
     yield session
 
