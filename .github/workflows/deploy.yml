@@ -1,0 +1,53 @@
+name: Déploiement
+
+# Secrets attendus (à configurer dans Settings > Secrets and variables > Actions,
+# jamais commités) : OVH_HOST, OVH_USER, OVH_SSH_KEY, OVH_PORT.
+# Un seul VPS est supposé ici, avec deux répertoires de déploiement distincts
+# (staging/ et production/) — voir docs/manuels/deploiement.md pour le détail
+# de l'arborescence attendue sur le serveur.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Déployer sur le VPS OVHcloud (staging)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.OVH_HOST }}
+          username: ${{ secrets.OVH_USER }}
+          key: ${{ secrets.OVH_SSH_KEY }}
+          port: ${{ secrets.OVH_PORT }}
+          script: |
+            cd /opt/parlemtrack/staging
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+
+  deploy-production:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Déployer sur le VPS OVHcloud (production)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.OVH_HOST }}
+          username: ${{ secrets.OVH_USER }}
+          key: ${{ secrets.OVH_SSH_KEY }}
+          port: ${{ secrets.OVH_PORT }}
+          script: |
+            cd /opt/parlemtrack/production
+            git fetch origin ${{ github.ref_name }}
+            git checkout ${{ github.ref_name }}
+            docker compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
