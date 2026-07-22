@@ -3,14 +3,20 @@
 Ce manuel décrit la mise en production sur un VPS OVHcloud, déployé via SSH
 depuis GitHub Actions (`.github/workflows/deploy.yml`).
 
-> **Prérequis non encore présents dans ce dépôt**, à créer avant tout
-> déploiement réel : `Dockerfile` pour le backend, `Dockerfile` pour le
-> frontend, et `docker-compose.prod.yml` orchestrant backend + frontend +
-> PostgreSQL + Redis en production. `docker-compose.yml` à la racine ne
-> contient aujourd'hui que les services PostgreSQL/Redis de développement
-> local. Le workflow `deploy.yml` référence `docker-compose.prod.yml` sur
-> le serveur : sans ce fichier, le déploiement échouera même avec des
-> secrets correctement configurés.
+`backend/Dockerfile`, `frontend/Dockerfile` et `docker-compose.prod.yml`
+(backend, frontend, PostgreSQL, Redis) existent dans le dépôt et ont été
+testés en réel en local : `docker compose -f docker-compose.prod.yml up
+--build` démarre les 4 services, l'API répond sur `/api/health` et le
+frontend sert des pages réelles (`/`, `/scrutins`, `/deputes`, `/groupes`,
+`/comprendre`) après application des migrations (`alembic upgrade head`).
+Seul le frontend publie un port sur l'hôte ; PostgreSQL, Redis et le
+backend ne sont joignables que depuis le réseau Docker interne — voir
+la section 6 pour le détail des images.
+
+> **Ce que ce test local ne couvre pas** : le VPS OVHcloud réel, le DNS,
+> le reverse proxy HTTPS et les secrets GitHub (`OVH_HOST`, `OVH_SSH_KEY`,
+> etc.) ne peuvent être vérifiés que sur l'infrastructure réelle — suivre
+> les sections 1 à 5 pour la première mise en production effective.
 
 ## 1. Création du VPS
 
@@ -94,7 +100,15 @@ cd /opt/parlemtrack/staging
 docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
 docker compose -f docker-compose.prod.yml ps
-curl -f http://localhost:8000/api/health
+
+# Le backend n'expose aucun port sur l'hôte (réseau interne uniquement) et
+# l'image ne contient pas curl : vérifier /api/health avec httpx (déjà une
+# dépendance du projet), depuis l'intérieur du conteneur.
+docker compose -f docker-compose.prod.yml exec -T backend python3 -c \
+  "import httpx; print(httpx.get('http://localhost:8000/api/health').json())"
+
+# Le frontend, lui, publie un port sur l'hôte (FRONTEND_PORT, 3000 par défaut).
+curl -f http://localhost:3000/
 ```
 
 Une fois ce déploiement manuel validé (API accessible, migrations
@@ -117,3 +131,52 @@ git push origin v1.0
 - Les logs du backend (`docker compose logs backend`) ne montrent aucune
   erreur au démarrage.
 - Le certificat HTTPS est valide (pas d'avertissement navigateur).
+
+## 6. Les images de production
+
+- **`backend/Dockerfile`** : multi-stage `python:3.12-slim`. Le stage
+  `builder` installe les dépendances de `requirements.txt` dans un
+  préfixe isolé, en excluant les outils dev-only (`pytest`, `ruff`,
+  `coverage`) — inutiles et non désirés en production. Le stage
+  `runtime` copie uniquement ce préfixe + le code (`backend/`,
+  `pipeline/` — utilisé en interne par certains services backend —,
+  `alembic/`), tourne en utilisateur non-root. **≈ 208 Mo.**
+- **`frontend/Dockerfile`** : multi-stage `node:22-alpine`, s'appuie sur
+  le mode `output: "standalone"` de Next.js (`next.config.ts`), qui ne
+  trace et ne copie que les fichiers réellement nécessaires au runtime —
+  pas de `node_modules` complet, pas de code source. Tourne en
+  utilisateur non-root ; attention à bien `--chown` les fichiers copiés
+  et créer `.next/cache` avec les bons droits, sinon le serveur Next
+  échoue silencieusement à écrire son cache de rendu (bug rencontré et
+  corrigé lors du test local, voir ci-dessous). **≈ 218 Mo.**
+- Aucune de ces deux images ne fait d'appel réseau à l'API pendant le
+  `build` : toutes les pages qui dépendent du backend sont rendues à la
+  demande (`dynamic`), jamais générées statiquement au moment du build.
+  C'est ce qui permet au job `frontend` de la CI de construire l'image
+  sans base de données ni backend actifs.
+
+### Résultat du test réel effectué en local
+
+`docker compose -f docker-compose.prod.yml up --build` a été exécuté en
+conditions réelles (build complet des deux images, démarrage des 4
+services, `alembic upgrade head` sur une base neuve) :
+
+| Vérification | Résultat |
+|---|---|
+| `postgres` et `redis` démarrent, healthchecks au vert | OK |
+| `backend` démarre et se connecte à PostgreSQL/Redis | OK |
+| `GET /api/health` (depuis le réseau interne) | `200`, `base_de_donnees: true`, `redis: true` |
+| `frontend` démarre (image standalone) | OK |
+| `/`, `/scrutins`, `/deputes`, `/groupes`, `/comprendre` (port publié) | `200` |
+
+Un bug réel a été trouvé et corrigé pendant ce test : le serveur Next
+tournant en utilisateur non-root n'avait pas les droits d'écriture sur
+`.next/cache` (répertoire resté possédé par `root` après le `COPY`
+depuis le stage de build), ce qui faisait échouer silencieusement le
+cache de rendu incrémental sur les pages dynamiques. Corrigé avec
+`COPY --chown` et une création explicite de `.next/cache` avec les bons
+droits avant de basculer sur l'utilisateur non-root.
+
+Ce test a été fait avec une base de données neuve (schéma migré, aucune
+donnée) et une clé Mistral factice — il valide l'orchestration Docker,
+pas les données ni les appels IA réels.

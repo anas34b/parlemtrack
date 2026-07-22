@@ -1,0 +1,78 @@
+# Déploiement de production : backend, frontend, PostgreSQL, Redis.
+#
+# Secrets attendus dans un fichier `.env` local au serveur (jamais commité,
+# voir .env.example) : POSTGRES_PASSWORD, MISTRAL_API_KEY, CORS_ORIGINS.
+#
+# Seul le frontend publie un port sur l'hôte : PostgreSQL, Redis et le
+# backend ne sont joignables que depuis le réseau interne Docker. Un reverse
+# proxy HTTPS (Caddy/Nginx, hors de ce compose) doit pointer vers le port
+# du frontend — voir docs/manuels/deploiement.md.
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: parlemtrack
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: parlemtrack
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [interne]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parlemtrack -d parlemtrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks: [interne]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg2://parlemtrack:${POSTGRES_PASSWORD}@postgres:5432/parlemtrack
+      REDIS_URL: redis://redis:6379/0
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-large-latest}
+      ENV: prod
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      RATE_LIMIT: ${RATE_LIMIT:-60/minute}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [interne]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      API_URL: http://backend:8000
+    depends_on:
+      - backend
+    networks: [interne]
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+networks:
+  interne:
+
+volumes:
+  postgres_data:
+  redis_data:

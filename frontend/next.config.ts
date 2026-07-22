@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Image de production minimale (voir frontend/Dockerfile) : ne copie que
+  // les fichiers réellement nécessaires au runtime, sans node_modules complet.
+  output: "standalone",
 };
 
 export default nextConfig;
