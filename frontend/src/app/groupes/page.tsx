@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Groupes — ParlemTrack",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function GroupesPage() {
   const groupes = await listerGroupes();
