@@ -1,5 +1,13 @@
 name: Collecte nocturne
 
+# Le pipeline tourne DANS le conteneur backend du VPS de production, via SSH
+# (mêmes secrets que deploy.yml : OVH_HOST, OVH_USER, OVH_SSH_KEY, OVH_PORT) —
+# pas de connexion directe à PostgreSQL/Redis depuis le runner GitHub, ces
+# services n'étant volontairement pas exposés sur l'hôte (voir
+# docker-compose.prod.yml). Le conteneur backend a déjà toutes les variables
+# d'environnement nécessaires (DATABASE_URL, MISTRAL_API_KEY, REDIS_URL),
+# définies une seule fois dans le `.env` du serveur.
+
 on:
   schedule:
     # 4h00 UTC ≈ 6h00 Paris (heure d'été) / 5h00 Paris (heure d'hiver)
@@ -9,18 +17,18 @@ on:
 jobs:
   collecte:
     runs-on: ubuntu-latest
+    environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Exécuter le pipeline de collecte sur le VPS
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          python-version: "3.12"
-      - run: pip install -r requirements.txt
-      - name: Exécuter le pipeline de collecte
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-        run: python -m pipeline.run
+          host: ${{ secrets.OVH_HOST }}
+          username: ${{ secrets.OVH_USER }}
+          key: ${{ secrets.OVH_SSH_KEY }}
+          port: ${{ secrets.OVH_PORT }}
+          script: |
+            cd /opt/parlemtrack/production
+            docker compose -f docker-compose.prod.yml exec -T backend python -m pipeline.run
 
       - name: Créer une issue de suivi en cas d'échec
         if: failure()

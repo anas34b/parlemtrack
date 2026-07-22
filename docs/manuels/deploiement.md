@@ -70,14 +70,16 @@ valeurs sont identiques) :
 | `OVH_SSH_KEY` | Clé privée SSH dédiée au déploiement (jamais réutiliser une clé personnelle) |
 | `OVH_PORT` | Port SSH du VPS (souvent `22`) |
 
-Pour `pipeline-collecte.yml`, ajouter également au dépôt (pas besoin
-d'environnement séparé, ce workflow n'est pas lié à staging/production) :
-
-| Secret | Description |
-|---|---|
-| `DATABASE_URL` | URL PostgreSQL de production |
-| `MISTRAL_API_KEY` | Clé API Mistral La Plateforme |
-| `REDIS_URL` | URL Redis de production |
+`pipeline-collecte.yml` (le cron nocturne) réutilise ces mêmes secrets
+`OVH_*`, dans l'environnement `production` : il n'a pas de secrets qui lui
+sont propres. PostgreSQL et Redis ne sont volontairement pas exposés sur
+l'hôte (voir `docker-compose.prod.yml`), donc le cron ne s'y connecte pas
+directement depuis le runner GitHub — il se connecte en SSH au VPS et
+exécute `python -m pipeline.run` **à l'intérieur** du conteneur `backend`
+déjà en cours d'exécution (`docker compose exec`), qui a déjà accès à
+`DATABASE_URL`/`MISTRAL_API_KEY`/`REDIS_URL` via le `.env` du serveur.
+Ces valeurs n'ont donc besoin d'être définies qu'une seule fois, sur le
+VPS — jamais dans les secrets GitHub.
 
 La clé SSH se génère localement (jamais sur le VPS) :
 
