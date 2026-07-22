@@ -14,7 +14,7 @@ logger = logging.getLogger("pipeline.ia.mistral_client")
 TIMEOUT_MS = 30_000
 NB_RETRIES = 2
 BACKOFF_S = 2.0
-BACKOFF_RATE_LIMIT_S = 15.0
+BACKOFF_RATE_LIMIT_S = 30.0
 
 
 def _est_rate_limit(exc: Exception) -> bool:
