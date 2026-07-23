@@ -18,65 +18,63 @@ la section 6 pour le détail des images.
 > etc.) ne peuvent être vérifiés que sur l'infrastructure réelle — suivre
 > les sections 1 à 5 pour la première mise en production effective.
 
+Un seul environnement de déploiement est utilisé ici (pas de distinction
+staging/production séparée) : un clone unique sur le VPS, redéployé à
+chaque push sur `main`.
+
 ## 1. Création du VPS
 
 1. Commander un VPS OVHcloud (Debian ou Ubuntu LTS récent).
-2. Se connecter en SSH avec l'utilisateur initial fourni par OVHcloud.
-3. Créer un utilisateur dédié au déploiement (ex. `deploy`), avec accès
-   `sudo` et **sans mot de passe activé pour SSH** (authentification par
-   clé uniquement) :
-   ```bash
-   adduser deploy
-   usermod -aG sudo deploy
-   ```
-4. Installer Docker et Docker Compose sur le VPS :
+2. Se connecter en SSH avec l'utilisateur fourni par OVHcloud (souvent
+   `ubuntu` sur une image Ubuntu — utilisable tel quel comme utilisateur
+   de déploiement, un utilisateur `deploy` dédié n'est pas obligatoire
+   pour un projet de cette taille).
+3. Installer Docker et le plugin Docker Compose sur le VPS :
    ```bash
    curl -fsSL https://get.docker.com | sh
-   usermod -aG docker deploy
+   sudo usermod -aG docker $USER
    ```
-5. Créer l'arborescence de déploiement attendue par `deploy.yml` :
+   (se déconnecter/reconnecter pour que l'appartenance au groupe `docker`
+   prenne effet).
+4. Cloner le dépôt dans le répertoire personnel de l'utilisateur SSH,
+   chemin attendu par `deploy.yml` et `pipeline-collecte.yml` :
    ```bash
-   mkdir -p /opt/parlemtrack/staging /opt/parlemtrack/production
-   git clone <url-du-depot> /opt/parlemtrack/staging
-   git clone <url-du-depot> /opt/parlemtrack/production
+   git clone <url-du-depot> ~/parlemtrack
    ```
-6. Copier un fichier `.env` réel (jamais commité) dans chacun des deux
-   répertoires, à partir de `.env.example`, avec les vraies valeurs de
-   production (clé Mistral, mot de passe PostgreSQL, etc.).
+5. Copier un fichier `.env` réel (jamais commité) à la racine de
+   `~/parlemtrack`, à partir de `.env.example`, avec les vraies valeurs
+   de production (clé Mistral, mot de passe PostgreSQL, etc.).
 
 ## 2. Configuration DNS
 
-1. Chez le registrar du nom de domaine, créer les enregistrements :
-   - `A` (ou `AAAA`) pointant vers l'IP du VPS pour le domaine de production.
-   - Un sous-domaine dédié pour le staging (ex. `staging.mondomaine.fr`).
+1. Chez le registrar du nom de domaine, créer un enregistrement `A` (ou
+   `AAAA`) pointant vers l'IP du VPS.
 2. Attendre la propagation DNS (vérifier avec `dig` ou `nslookup`).
 3. Mettre en place un reverse proxy avec certificat HTTPS (ex. Caddy ou
-   Nginx + Certbot) sur le VPS, pointant vers les ports exposés par
+   Nginx + Certbot) sur le VPS, pointant vers le port publié par
    `docker-compose.prod.yml` — HTTPS est obligatoire en production
    (règle CLAUDE.md).
 
 ## 3. Ajout des secrets GitHub
 
-Dans le dépôt GitHub : **Settings → Secrets and variables → Actions**.
-
-Créer deux environnements (**Settings → Environments**) : `staging` et
-`production`, puis, pour chacun (ou en secrets de dépôt partagés si les
-valeurs sont identiques) :
+Dans le dépôt GitHub : **Settings → Secrets and variables → Actions**,
+en secrets de dépôt (pas besoin d'environnements GitHub séparés avec un
+seul environnement de déploiement) :
 
 | Secret | Description |
 |---|---|
 | `OVH_HOST` | Adresse IP ou nom d'hôte du VPS |
-| `OVH_USER` | Utilisateur SSH de déploiement (ex. `deploy`) |
+| `OVH_USER` | Utilisateur SSH (ex. `ubuntu`) |
 | `OVH_SSH_KEY` | Clé privée SSH dédiée au déploiement (jamais réutiliser une clé personnelle) |
 | `OVH_PORT` | Port SSH du VPS (souvent `22`) |
 
 `pipeline-collecte.yml` (le cron nocturne) réutilise ces mêmes secrets
-`OVH_*`, dans l'environnement `production` : il n'a pas de secrets qui lui
-sont propres. PostgreSQL et Redis ne sont volontairement pas exposés sur
-l'hôte (voir `docker-compose.prod.yml`), donc le cron ne s'y connecte pas
-directement depuis le runner GitHub — il se connecte en SSH au VPS et
-exécute `python -m pipeline.run` **à l'intérieur** du conteneur `backend`
-déjà en cours d'exécution (`docker compose exec`), qui a déjà accès à
+`OVH_*` : il n'a pas de secrets qui lui sont propres. PostgreSQL et Redis
+ne sont volontairement pas exposés sur l'hôte (voir
+`docker-compose.prod.yml`), donc le cron ne s'y connecte pas directement
+depuis le runner GitHub — il se connecte en SSH au VPS et exécute
+`python -m pipeline.run` **à l'intérieur** du conteneur `backend` déjà en
+cours d'exécution (`docker compose exec`), qui a déjà accès à
 `DATABASE_URL`/`MISTRAL_API_KEY`/`REDIS_URL` via le `.env` du serveur.
 Ces valeurs n'ont donc besoin d'être définies qu'une seule fois, sur le
 VPS — jamais dans les secrets GitHub.
@@ -88,8 +86,8 @@ ssh-keygen -t ed25519 -C "deploiement-parlemtrack" -f deploy_key
 ```
 
 La clé publique (`deploy_key.pub`) va dans `~/.ssh/authorized_keys` de
-l'utilisateur `deploy` sur le VPS ; la clé privée (`deploy_key`) va dans
-le secret GitHub `OVH_SSH_KEY`, jamais ailleurs.
+l'utilisateur SSH sur le VPS ; la clé privée (`deploy_key`) va dans le
+secret GitHub `OVH_SSH_KEY`, jamais ailleurs.
 
 ## 4. Premier déploiement manuel de vérification
 
@@ -97,8 +95,8 @@ Avant de laisser la CI déployer automatiquement, valider une première
 fois à la main depuis le VPS :
 
 ```bash
-ssh deploy@<ip-du-vps>
-cd /opt/parlemtrack/staging
+ssh <utilisateur>@<ip-du-vps>
+cd ~/parlemtrack
 docker compose -f docker-compose.prod.yml up -d --build
 # Les migrations s'appliquent automatiquement au démarrage du conteneur
 # backend (backend/docker-entrypoint.sh) — pas de commande séparée à lancer.
@@ -117,14 +115,7 @@ curl -f http://localhost:3000/
 Une fois ce déploiement manuel validé (API accessible, migrations
 appliquées, frontend qui répond), déclencher le workflow `Déploiement`
 depuis l'onglet Actions de GitHub (ou pousser sur `main`) pour vérifier
-que le déploiement automatique staging reproduit le même résultat.
-
-Pour la production, le déclenchement se fait par un tag de version :
-
-```bash
-git tag v1.0
-git push origin v1.0
-```
+que le déploiement automatique reproduit le même résultat.
 
 ## 5. Vérifications post-déploiement
 

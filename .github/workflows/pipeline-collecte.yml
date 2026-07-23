@@ -17,7 +17,6 @@ on:
 jobs:
   collecte:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - name: Exécuter le pipeline de collecte sur le VPS
         uses: appleboy/ssh-action@v1.2.0
@@ -27,7 +26,7 @@ jobs:
           key: ${{ secrets.OVH_SSH_KEY }}
           port: ${{ secrets.OVH_PORT }}
           script: |
-            cd /opt/parlemtrack/production
+            cd ~/parlemtrack
             docker compose -f docker-compose.prod.yml exec -T backend python -m pipeline.run
 
       - name: Créer une issue de suivi en cas d'échec
