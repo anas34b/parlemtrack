@@ -1,11 +1,15 @@
 # Changelog — ParlemTrack
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
-Aucune version n'est encore taguée : tout l'historique ci-dessous est
-regroupé par phase de développement, dans l'ordre chronologique réel
-(`git log`).
+L'historique est regroupé par phase de développement, dans l'ordre
+chronologique réel (`git log`).
 
 ## [Non publié]
+### Documentation
+- Fiche de bug BUG-017 (absence de détection ETag, source Datan)
+- Correction du cahier de recettes S06 et du PV de recette (dédoublonnage)
+
+## [v1.0] — 2026-07-23
 
 ### Phase 5 — CI/CD et déploiement (2026-07-22 → 2026-07-23)
 
@@ -21,6 +25,13 @@ regroupé par phase de développement, dans l'ordre chronologique réel
 - `backend/docker-entrypoint.sh` : application automatique des migrations
   Alembic au démarrage du conteneur backend.
 - Manuel de déploiement (`docs/manuels/deploiement.md`).
+- Tableau OWASP Top 10 : mesures réelles et non-applicabilités justifiées
+  (`docs/owasp.md`).
+- Résultats réels de l'exécution du cahier de recettes le 23/07/2026
+  (26 OK / 3 KO / 1 partiel sur 30 cas).
+- Fiches BUG-015 (recherche insensible aux accents), BUG-016 (filtres
+  scrutins non transmis), BUG-018 (barre de vote par groupe écrasée
+  en mobile).
 
 #### Modifié
 - Backoff du rate limit Mistral porté à 30 s (15 s insuffisant en pratique).
