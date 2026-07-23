@@ -55,6 +55,9 @@ chaque push sur `main`.
    `docker-compose.prod.yml` — HTTPS est obligatoire en production
    (règle CLAUDE.md).
 
+   Sur le VPS de démonstration actuel, cette étape n'a pas encore été
+   réalisée (HTTP simple) — limite connue, correction prévue en v1.1.
+
 ## 3. Ajout des secrets GitHub
 
 Dans le dépôt GitHub : **Settings → Secrets and variables → Actions**,
