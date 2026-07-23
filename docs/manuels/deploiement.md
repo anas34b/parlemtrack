@@ -100,7 +100,8 @@ fois à la main depuis le VPS :
 ssh deploy@<ip-du-vps>
 cd /opt/parlemtrack/staging
 docker compose -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+# Les migrations s'appliquent automatiquement au démarrage du conteneur
+# backend (backend/docker-entrypoint.sh) — pas de commande séparée à lancer.
 docker compose -f docker-compose.prod.yml ps
 
 # Le backend n'expose aucun port sur l'hôte (réseau interne uniquement) et

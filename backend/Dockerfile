@@ -23,9 +23,10 @@ COPY backend/ backend/
 COPY pipeline/ pipeline/
 COPY alembic/ alembic/
 COPY alembic.ini .
+RUN chmod +x backend/docker-entrypoint.sh
 
 USER parlemtrack
 
 EXPOSE 8000
 
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["backend/docker-entrypoint.sh"]

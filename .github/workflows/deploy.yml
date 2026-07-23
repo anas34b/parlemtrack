@@ -30,7 +30,6 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             docker compose -f docker-compose.prod.yml up -d --build
-            docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
 
   deploy-production:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -50,4 +49,3 @@ jobs:
             git fetch origin ${{ github.ref_name }}
             git checkout ${{ github.ref_name }}
             docker compose -f docker-compose.prod.yml up -d --build
-            docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
